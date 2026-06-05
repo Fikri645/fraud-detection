@@ -8,6 +8,7 @@ Tabs:
   4. Model Comparison    — LightGBM vs Autoencoder vs GNN
   5. Drift Monitoring    — PSI report (train period -> test period)
   6. Real-time Benchmark — streaming latency percentiles
+  7. Cross-Dataset       — ULB validation + the dataset-dependent imbalance finding
 
 Heavy results are pre-computed by the scripts and read from JSON; live scoring
 loads the LightGBM model + online feature store on demand.

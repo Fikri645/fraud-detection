@@ -233,7 +233,8 @@ pytest tests/ -v                    # tests
 ## What This Demonstrates
 
 - **Imbalanced learning done right** — PR-AUC, cost-sensitive learning, business-cost
-  threshold optimization (not accuracy, not default 0.5)
+  threshold optimization (not accuracy, not default 0.5) — and the critical-thinking
+  twist that **the best imbalance strategy is dataset-dependent** (cross-validated on real ULB data)
 - **Feature engineering** — leakage-safe velocity/behavioral/geo features that carry the signal
 - **Breadth of modelling** — gradient boosting, graph neural networks, and autoencoders, compared honestly
 - **Production thinking** — real-time online features, latency benchmarking, drift monitoring, explainability
