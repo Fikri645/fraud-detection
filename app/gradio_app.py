@@ -220,6 +220,25 @@ score several transactions in a row — the store accumulates history.
     return md, fig
 
 
+def warmup_live_scoring():
+    """
+    Pre-compile the SHAP / numba JIT path at server startup.
+
+    The very first SHAP call triggers numba JIT compilation, which can take
+    30–60s on a cold CPU. Doing it once here (during the Space's startup phase)
+    means the user's first 'Score Transaction' click is fast instead of hanging.
+    The online store is reset afterwards so the demo card starts clean.
+    """
+    try:
+        _load_live()
+        score_transaction(100, "shopping_net", 12, "F", "NY", 40.71, -74.0, 40.0, -74.0, 1000, 35)
+        from src.online import OnlineFeatureStore
+        _LIVE["store"] = OnlineFeatureStore()
+        print("[warmup] live scoring + SHAP ready")
+    except Exception as e:  # never block app startup on warm-up
+        print(f"[warmup] skipped: {e}")
+
+
 # ── Tab 3: Explainability ───────────────────────────────────────────────────
 
 def explainability_view():
@@ -477,6 +496,9 @@ with gr.Blocks(title="Fraud Detection",
     gr.Markdown(
         "---\nBuilt by [Muhammad Fikri Wahidin](https://github.com/Fikri645) · "
         "Sparkov dataset · LightGBM · PyTorch Geometric · SHAP · FastAPI")
+
+# Warm up the SHAP/numba path once at startup so the first user click is fast.
+warmup_live_scoring()
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
