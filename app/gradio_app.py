@@ -152,8 +152,7 @@ def _load_live():
             _LIVE["explainer"] = None
 
 
-def score_transaction(amt, category, hour, gender, state, home_lat, home_long,
-                      merch_lat, merch_long, city_pop, age_years):
+def score_transaction(amt, category, hour, distance_km, gender, state, age_years):
     if not config.LGBM_MODEL.exists():
         return "Run training first.", None
     _load_live()
@@ -164,12 +163,18 @@ def score_transaction(amt, category, hour, gender, state, home_lat, home_long,
     unix_t = base.timestamp()
     dob = (base - dt.timedelta(days=int(age_years * 365.25))).strftime("%Y-%m-%d")
 
+    # Place the merchant `distance_km` away from a fixed home location, so the
+    # user controls the geo-distance signal directly without typing coordinates.
+    home_lat, home_long = 40.71, -74.0          # fixed demo "home" (New York)
+    merch_lat = home_lat
+    merch_long = home_long + float(distance_km) / 85.0   # ~85 km per lon-degree at 40N
+
     txn = {
         "cc_num": 9999999999999999, "amt": float(amt), "unix_time": unix_t,
         "merchant": "demo_merchant", "category": category, "gender": gender,
-        "state": state, "lat": float(home_lat), "long": float(home_long),
-        "merch_lat": float(merch_lat), "merch_long": float(merch_long),
-        "city_pop": float(city_pop), "dob": dob,
+        "state": state, "lat": home_lat, "long": home_long,
+        "merch_lat": merch_lat, "merch_long": merch_long,
+        "city_pop": 500000.0, "dob": dob,
     }
 
     t0 = time.perf_counter()
@@ -231,7 +236,7 @@ def warmup_live_scoring():
     """
     try:
         _load_live()
-        score_transaction(100, "shopping_net", 12, "F", "NY", 40.71, -74.0, 40.0, -74.0, 1000, 35)
+        score_transaction(100, "shopping_net", 12, 50, "F", "NY", 35)
         from src.online import OnlineFeatureStore
         _LIVE["store"] = OnlineFeatureStore()
         print("[warmup] live scoring + SHAP ready")
@@ -415,10 +420,13 @@ On **Sparkov** (strong engineered features) cost-sensitive weighting *dominates*
 _DESC = """
 # 🛡️ Real-Time Credit Card Fraud Detection
 
-End-to-end fraud system on the **Sparkov** dataset (1.85M transactions, ~0.5% fraud):
-rich feature engineering, an honest imbalance study, three modelling approaches
-(**LightGBM · GraphSAGE GNN · Autoencoder**), SHAP explainability, concept-drift
-monitoring, and a real-time scoring service.
+An end-to-end fraud system on the **Sparkov** dataset (1.85M transactions, ~0.5% fraud).
+
+- **Model** — LightGBM (PR-AUC **0.97**) · plus a GraphSAGE GNN and an autoencoder baseline
+- **Honest evaluation** — PR-AUC, cost-optimal thresholds, an imbalance study + real-data validation
+- **Production-shaped** — leakage-safe features, SHAP explanations, drift monitoring, ~10 ms scoring
+
+👉 **Try it:** open the **Live Scoring** tab, set an amount / time / distance, and click *Score*.
 """
 
 with gr.Blocks(title="Fraud Detection",
@@ -427,17 +435,17 @@ with gr.Blocks(title="Fraud Detection",
     gr.Markdown(_DESC)
 
     with gr.Tab("1. Model Performance"):
-        b1 = gr.Button("Load results", variant="primary")
         with gr.Row():
             p1 = gr.Plot()
             p2 = gr.Plot()
         md1 = gr.Markdown()
-        b1.click(performance_view, outputs=[p1, p2, md1], scroll_to_output=False)
         demo.load(performance_view, outputs=[p1, p2, md1])
 
     with gr.Tab("2. Live Scoring"):
-        gr.Markdown("### Score a transaction in real time\nAdjust the inputs and click Score. "
-                    "Score several in a row to build up the card's velocity history.")
+        gr.Markdown("### Score a transaction in real time\n"
+                    "Set the transaction details and click **Score**. Fraud rises with a high "
+                    "amount, a late hour, and a large distance from home. Score several in a "
+                    "row to build up the card's velocity history and watch the risk climb.")
         with gr.Row():
             with gr.Column():
                 amt = gr.Slider(1, 5000, value=850, label="Amount ($)")
@@ -446,23 +454,19 @@ with gr.Blocks(title="Fraud Detection",
                      "shopping_pos", "entertainment", "food_dining", "health_fitness",
                      "travel", "kids_pets", "home", "personal_care"],
                     value="shopping_net", label="Category")
-                hour = gr.Slider(0, 23, value=2, step=1, label="Hour of day (0-23)")
+                hour = gr.Slider(0, 23, value=2, step=1, label="Hour of day (0 = midnight)")
+                distance_km = gr.Slider(0, 3000, value=600, step=10,
+                                        label="Distance from cardholder's home (km)")
+            with gr.Column():
                 gender = gr.Dropdown(["F", "M"], value="F", label="Gender")
                 state = gr.Dropdown(["NY", "CA", "TX", "FL", "PA", "OH", "IL"],
                                     value="NY", label="State")
-            with gr.Column():
-                home_lat = gr.Number(value=40.71, label="Cardholder home lat")
-                home_long = gr.Number(value=-74.0, label="Cardholder home long")
-                merch_lat = gr.Number(value=36.0, label="Merchant lat")
-                merch_long = gr.Number(value=-90.0, label="Merchant long")
-                city_pop = gr.Number(value=1000000, label="City population")
                 age_years = gr.Slider(18, 90, value=35, step=1, label="Cardholder age")
         sbtn = gr.Button("Score Transaction", variant="primary")
         smd = gr.Markdown()
         splot = gr.Plot()
         sbtn.click(score_transaction,
-                   inputs=[amt, category, hour, gender, state, home_lat, home_long,
-                           merch_lat, merch_long, city_pop, age_years],
+                   inputs=[amt, category, hour, distance_km, gender, state, age_years],
                    outputs=[smd, splot], scroll_to_output=False)
 
     with gr.Tab("3. Explainability"):
