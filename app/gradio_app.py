@@ -451,33 +451,28 @@ with gr.Blocks(title="Fraud Detection",
         p3 = gr.Plot()
         md3 = gr.Markdown()
         b3.click(explainability_view, outputs=[p3, md3], scroll_to_output=False)
-        demo.load(explainability_view, outputs=[p3, md3])
 
     with gr.Tab("4. Model Comparison"):
         b4 = gr.Button("Load comparison", variant="primary")
         p4 = gr.Plot()
         md4 = gr.Markdown()
         b4.click(comparison_view, outputs=[p4, md4], scroll_to_output=False)
-        demo.load(comparison_view, outputs=[p4, md4])
 
     with gr.Tab("5. Drift Monitoring"):
         b5 = gr.Button("Load drift report", variant="primary")
         p5 = gr.Plot()
         md5 = gr.Markdown()
         b5.click(drift_view, outputs=[p5, md5], scroll_to_output=False)
-        demo.load(drift_view, outputs=[p5, md5])
 
     with gr.Tab("6. Real-time Benchmark"):
         b6 = gr.Button("Load benchmark", variant="primary")
         md6 = gr.Markdown()
         b6.click(stream_view, outputs=[md6], scroll_to_output=False)
-        demo.load(stream_view, outputs=[md6])
 
     with gr.Tab("7. Cross-Dataset"):
         b7 = gr.Button("Load cross-dataset finding", variant="primary")
         md7 = gr.Markdown()
         b7.click(cross_view, outputs=[md7], scroll_to_output=False)
-        demo.load(cross_view, outputs=[md7])
 
     gr.Markdown(
         "---\nBuilt by [Muhammad Fikri Wahidin](https://github.com/Fikri645) · "
