@@ -375,7 +375,7 @@ with gr.Blocks(title="Fraud Detection",
             p1 = gr.Plot()
             p2 = gr.Plot()
         md1 = gr.Markdown()
-        b1.click(performance_view, outputs=[p1, p2, md1])
+        b1.click(performance_view, outputs=[p1, p2, md1], scroll_to_output=False)
         demo.load(performance_view, outputs=[p1, p2, md1])
 
     with gr.Tab("2. Live Scoring"):
@@ -406,33 +406,33 @@ with gr.Blocks(title="Fraud Detection",
         sbtn.click(score_transaction,
                    inputs=[amt, category, hour, gender, state, home_lat, home_long,
                            merch_lat, merch_long, city_pop, age_years],
-                   outputs=[smd, splot])
+                   outputs=[smd, splot], scroll_to_output=False)
 
     with gr.Tab("3. Explainability"):
         b3 = gr.Button("Load SHAP", variant="primary")
         p3 = gr.Plot()
         md3 = gr.Markdown()
-        b3.click(explainability_view, outputs=[p3, md3])
+        b3.click(explainability_view, outputs=[p3, md3], scroll_to_output=False)
         demo.load(explainability_view, outputs=[p3, md3])
 
     with gr.Tab("4. Model Comparison"):
         b4 = gr.Button("Load comparison", variant="primary")
         p4 = gr.Plot()
         md4 = gr.Markdown()
-        b4.click(comparison_view, outputs=[p4, md4])
+        b4.click(comparison_view, outputs=[p4, md4], scroll_to_output=False)
         demo.load(comparison_view, outputs=[p4, md4])
 
     with gr.Tab("5. Drift Monitoring"):
         b5 = gr.Button("Load drift report", variant="primary")
         p5 = gr.Plot()
         md5 = gr.Markdown()
-        b5.click(drift_view, outputs=[p5, md5])
+        b5.click(drift_view, outputs=[p5, md5], scroll_to_output=False)
         demo.load(drift_view, outputs=[p5, md5])
 
     with gr.Tab("6. Real-time Benchmark"):
         b6 = gr.Button("Load benchmark", variant="primary")
         md6 = gr.Markdown()
-        b6.click(stream_view, outputs=[md6])
+        b6.click(stream_view, outputs=[md6], scroll_to_output=False)
         demo.load(stream_view, outputs=[md6])
 
     gr.Markdown(
