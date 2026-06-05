@@ -1,0 +1,113 @@
+{
+  "reference": "train period (2019-01 .. 2020-06)",
+  "current": "test period (2020-06 .. 2020-12)",
+  "feature_psi": [
+    {
+      "feature": "txn_count_7d",
+      "psi": 0.0733,
+      "status": "stable"
+    },
+    {
+      "feature": "day_of_week",
+      "psi": 0.0518,
+      "status": "stable"
+    },
+    {
+      "feature": "distinct_merchants_24h",
+      "psi": 0.0459,
+      "status": "stable"
+    },
+    {
+      "feature": "txn_count_24h",
+      "psi": 0.0458,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_sum_7d",
+      "psi": 0.0394,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_sum_24h",
+      "psi": 0.0282,
+      "status": "stable"
+    },
+    {
+      "feature": "secs_since_prev_txn",
+      "psi": 0.0171,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_mean_24h",
+      "psi": 0.0103,
+      "status": "stable"
+    },
+    {
+      "feature": "age",
+      "psi": 0.0077,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_dev_from_card_mean",
+      "psi": 0.0056,
+      "status": "stable"
+    },
+    {
+      "feature": "txn_count_1h",
+      "psi": 0.0046,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_sum_1h",
+      "psi": 0.0028,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_ratio_to_card_mean",
+      "psi": 0.0009,
+      "status": "stable"
+    },
+    {
+      "feature": "amt",
+      "psi": 0.0001,
+      "status": "stable"
+    },
+    {
+      "feature": "amt_log",
+      "psi": 0.0001,
+      "status": "stable"
+    },
+    {
+      "feature": "hour",
+      "psi": 0.0,
+      "status": "stable"
+    },
+    {
+      "feature": "is_night",
+      "psi": 0.0,
+      "status": "stable"
+    },
+    {
+      "feature": "is_weekend",
+      "psi": 0.0,
+      "status": "stable"
+    },
+    {
+      "feature": "city_pop_log",
+      "psi": 0.0,
+      "status": "stable"
+    },
+    {
+      "feature": "dist_home_merchant_km",
+      "psi": 0.0,
+      "status": "stable"
+    },
+    {
+      "feature": "dist_from_prev_txn_km",
+      "psi": 0.0,
+      "status": "stable"
+    }
+  ],
+  "score_psi": 0.0038,
+  "score_psi_status": "stable"
+}

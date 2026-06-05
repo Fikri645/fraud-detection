@@ -1,0 +1,38 @@
+# Data — too large to commit (regenerate via scripts/download_data.py)
+data/raw/*.csv
+data/processed/*.parquet
+data/processed/*.csv
+
+# Models — large binaries (regenerate via training scripts)
+models/*.pt
+models/*.npy
+
+# Keep lightweight artifacts committed for the demo (app needs these):
+#   - lgbm_fraud.joblib (4.4 MB) powers live scoring
+#   - *_meta.json / *_report.json / *_benchmark.json feed the dashboard tabs
+# (large .pt models — autoencoder, GNN — stay out; the app reads only their JSON meta)
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.coverage
+coverage.xml
+htmlcov/
+
+# Envs
+.venv/
+venv/
+env/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
