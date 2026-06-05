@@ -32,9 +32,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install numpy pandas scipy scikit-learn pyarrow
-          pip install lightgbm shap
+          pip install lightgbm shap imbalanced-learn
+          pip install fastapi httpx
           pip install pytest pytest-cov flake8
-          # torch CPU wheel (autoencoder/online tests don't need CUDA)
+          # torch CPU wheel — src/gnn.py imports torch (edge-builder test); no CUDA needed
           pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Lint (flake8)

@@ -8,14 +8,14 @@
   "test_metrics": {
     "pr_auc": 0.9666,
     "roc_auc": 0.99908,
-    "f1_at_best": 0.91499,
-    "best_threshold": 0.5,
-    "precision_at_best": 0.89736,
-    "recall_at_best": 0.93333,
+    "f1_at_best": 0.79494,
+    "best_threshold": 0.0187,
+    "precision_at_best": 0.67536,
+    "recall_at_best": 0.96597,
     "precision_at_100": 1.0,
     "recall_at_1pct": 0.98042,
-    "total_cost": 1567.45501,
-    "cost_at_half": 1567.45501,
+    "total_cost": 1863.35715,
+    "cost_at_half": 2341.27503,
     "n": 555719,
     "n_fraud": 2145
   },
@@ -762,5 +762,9 @@
     "reg_lambda": 0.04488,
     "scale_pos_weight": 171.94414
   },
-  "best_valid_pr_auc": 0.9801
+  "best_valid_pr_auc": 0.9801,
+  "cost_model": {
+    "c_fn": 5.0,
+    "c_fp": 1.0
+  }
 }

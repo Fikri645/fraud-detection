@@ -16,6 +16,7 @@ STAGES = [
     ("GNN", "scripts/run_gnn.py"),
     ("Drift report", "scripts/run_drift.py"),
     ("Streaming benchmark", "streaming/simulate_stream.py"),
+    ("Cross-dataset validation (ULB)", "scripts/run_cross_dataset.py"),
 ]
 
 

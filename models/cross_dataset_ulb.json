@@ -1,0 +1,41 @@
+{
+  "dataset": "ULB creditcardfraud (real European transactions, Sept 2013)",
+  "n_total": 284807,
+  "fraud_rate": 0.00173,
+  "n_train": 199364,
+  "n_test": 85443,
+  "split": "stratified 70/30 (standard ULB protocol)",
+  "strategies": {
+    "plain": {
+      "pr_auc": 0.41839,
+      "roc_auc": 0.81799,
+      "f1_at_best": 0.62581,
+      "best_threshold": 1.0,
+      "precision_at_best": 0.59877,
+      "recall_at_best": 0.65541,
+      "precision_at_100": 0.56,
+      "recall_at_1pct": 0.71622,
+      "total_cost": 527.8359,
+      "cost_at_half": 742.75203,
+      "n": 85443,
+      "n_fraud": 148
+    },
+    "cost_sensitive": {
+      "pr_auc": 0.02461,
+      "roc_auc": 0.90652,
+      "f1_at_best": 0.05458,
+      "best_threshold": 1.0,
+      "precision_at_best": 0.02818,
+      "recall_at_best": 0.86486,
+      "precision_at_100": 0.01,
+      "recall_at_1pct": 0.16216,
+      "total_cost": 4712.22958,
+      "cost_at_half": 4715.22958,
+      "n": 85443,
+      "n_fraud": 148
+    }
+  },
+  "best_pr_auc": 0.4184,
+  "finding": "Imbalance strategy is dataset-dependent. On Sparkov (strong engineered features) cost-sensitive weighting dominates; on ULB (weak PCA features, 0.17% fraud) the same aggressive scale_pos_weight floods the high-score region with false positives and collapses PR-AUC \u2014 a plain model wins. The lesson: don't cargo-cult one imbalance recipe across datasets.",
+  "trained_at": "2026-06-05 22:40"
+}

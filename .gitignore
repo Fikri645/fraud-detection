@@ -3,14 +3,12 @@ data/raw/*.csv
 data/processed/*.parquet
 data/processed/*.csv
 
-# Models — large binaries (regenerate via training scripts)
-models/*.pt
 models/*.npy
 
-# Keep lightweight artifacts committed for the demo (app needs these):
+# Committed model artifacts (all small, used by the app / for reproducibility):
 #   - lgbm_fraud.joblib (4.4 MB) powers live scoring
+#   - autoencoder.pt (33 KB), gnn_fraud.pt (82 KB)
 #   - *_meta.json / *_report.json / *_benchmark.json feed the dashboard tabs
-# (large .pt models — autoencoder, GNN — stay out; the app reads only their JSON meta)
 
 # MLflow
 mlruns/

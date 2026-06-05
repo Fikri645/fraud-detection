@@ -72,9 +72,16 @@ VALID_FRACTION = 0.15  # last 15% of train (by time) held out for early stopping
 
 # ── Business cost model ─────────────────────────────────────────────────────
 # Used for threshold optimization. Tunable to a company's economics.
-COST_FALSE_NEGATIVE = 1.0   # missed fraud → lose the transaction amount (avg modelled per-txn)
-COST_FALSE_POSITIVE = 5.0   # blocking a legit txn → customer friction / churn (flat cost units)
-# Interpretation: blocking one good customer costs ~5× a single missed-fraud unit of goodwill.
+#
+# Fraud economics are asymmetric in the FN direction: a missed fraud (false
+# negative) loses real money — the transaction amount, which we scale by in
+# evaluate.expected_cost — while a blocked legit transaction (false positive)
+# only costs customer friction / goodwill. So FN must dominate FP.
+COST_FALSE_NEGATIVE = 5.0   # missed fraud → lose the txn amount (and amount-scaled in evaluate)
+COST_FALSE_POSITIVE = 1.0   # blocking a legit txn → flat friction / goodwill cost
+# Interpretation: a missed fraud of average value costs ~5× the friction of one
+# wrongly-declined customer. This pushes the optimal threshold below 0.5 —
+# catch more fraud, tolerate some extra false positives.
 
 # ── Gradient boosting defaults (overridden by Optuna) ──────────────────────
 LGBM_BASE_PARAMS = {

@@ -49,6 +49,7 @@ AE_META = _load_json(config.MODELS_DIR / "autoencoder_meta.json")
 GNN_META = _load_json(config.MODELS_DIR / "gnn_meta.json")
 DRIFT = _load_json(config.MODELS_DIR / "drift_report.json")
 STREAM = _load_json(config.MODELS_DIR / "stream_benchmark.json")
+CROSS = _load_json(config.MODELS_DIR / "cross_dataset_ulb.json")
 
 # Lazy live-scoring singletons
 _LIVE = {"model": None, "store": None, "explainer": None}
@@ -353,6 +354,42 @@ well inside the sub-100ms budget real payment systems require.
 """
 
 
+# ── Tab 7: Cross-Dataset Validation ─────────────────────────────────────────
+
+def cross_view():
+    if CROSS is None:
+        return "Run `python scripts/run_cross_dataset.py` first."
+    s = CROSS["strategies"]
+    plain = s["plain"]["pr_auc"]
+    cs = s["cost_sensitive"]["pr_auc"]
+    return f"""
+## Cross-Dataset Validation — does the approach generalize to *real* data?
+
+The main model is built on **Sparkov** (simulated). To check the methodology
+transfers, the same cost-sensitive LightGBM recipe was applied to the
+**ULB dataset** — {CROSS['n_total']:,} *real* European card transactions
+(Sept 2013), fraud rate **{CROSS['fraud_rate']:.2%}** (even more extreme), with
+PCA-anonymised features.
+
+| Strategy | PR-AUC (ULB, real) | PR-AUC (Sparkov) |
+|:---|:---|:---|
+| Plain LightGBM | **{plain:.3f}** | 0.682 |
+| Cost-sensitive | {cs:.3f} | **0.980** |
+
+### The finding — imbalance strategy is **dataset-dependent**
+
+On **Sparkov** (strong engineered features) cost-sensitive weighting *dominates*
+(0.68 → 0.98). On **ULB** (weak PCA features, 0.17% fraud) the *same* aggressive
+`scale_pos_weight` floods the high-score region with false positives and
+**collapses** PR-AUC ({plain:.3f} → {cs:.3f}) — here a plain model wins.
+
+> **Lesson:** there is no universal imbalance recipe. What wins on one dataset
+> can lose badly on another — you must validate per-dataset, not cargo-cult.
+> This is exactly why the project includes an imbalance *study* rather than
+> assuming a single fix.
+"""
+
+
 # ── Layout ──────────────────────────────────────────────────────────────────
 
 _DESC = """
@@ -434,6 +471,12 @@ with gr.Blocks(title="Fraud Detection",
         md6 = gr.Markdown()
         b6.click(stream_view, outputs=[md6], scroll_to_output=False)
         demo.load(stream_view, outputs=[md6])
+
+    with gr.Tab("7. Cross-Dataset"):
+        b7 = gr.Button("Load cross-dataset finding", variant="primary")
+        md7 = gr.Markdown()
+        b7.click(cross_view, outputs=[md7], scroll_to_output=False)
+        demo.load(cross_view, outputs=[md7])
 
     gr.Markdown(
         "---\nBuilt by [Muhammad Fikri Wahidin](https://github.com/Fikri645) · "

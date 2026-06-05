@@ -83,14 +83,22 @@ Signal check (test period, fraud vs legit means):
 | ROC-AUC | 0.999 | Near-perfect ranking |
 | **Recall @ top 1%** | **98.0%** | Reviewing the riskiest 1% of txns catches 98% of fraud |
 | **Precision @ top 100** | **100%** | The 100 highest-risk transactions are *all* fraud |
+| Cost-optimal threshold | **0.019** | Minimises expected business cost — **20% cheaper** than the naive 0.5 |
+
+The cost-optimal threshold (0.019, well below 0.5) reflects realistic fraud economics:
+a missed fraud loses the transaction amount, so it is worth accepting more false
+positives to catch more fraud. At that threshold the model catches **96.6%** of fraud.
 
 ### Model comparison (test PR-AUC)
 
 | Model | PR-AUC | ROC-AUC | Role |
 |:---|:---|:---|:---|
 | **LightGBM** (cost-sensitive, Optuna) | **0.967** | 0.999 | Production workhorse |
-| GraphSAGE (GNN) | 0.382 | 0.985 | Relational burst signal |
+| GraphSAGE (GNN, directed card+merchant graph) | 0.368 | 0.985 | Relational burst signal |
 | Autoencoder (unsupervised) | 0.135 | 0.866 | Label-free novel-fraud net |
+
+> The GNN uses **strictly directed past→present edges** (a transaction can only
+> attend to the card's / merchant's earlier transactions) — no temporal leakage.
 
 > Honest outcome: gradient boosting dominates tabular fraud. The GNN adds
 > relational context (and beats the unsupervised baseline), while the autoencoder
@@ -124,7 +132,25 @@ reproduces the 2025 industry consensus:
 
 Velocity features are maintained incrementally in an in-memory online store, so
 per-transaction scoring stays in the single-digit-millisecond range — well inside
-the sub-100ms budget real payment systems require.
+the sub-100ms budget real payment systems require. Replaying the test stream at
+the cost-optimal threshold catches **85% of fraud** at a 1.8% decline rate.
+
+### Cross-dataset validation — and a finding that matters
+
+The same recipe was applied to the **real-world ULB dataset** (284,807 genuine
+European card transactions, 0.17% fraud, PCA-anonymised):
+
+| Strategy | PR-AUC (ULB, real) | PR-AUC (Sparkov) |
+|:---|:---|:---|
+| Plain LightGBM | **0.418** | 0.682 |
+| Cost-sensitive | 0.025 | **0.980** |
+
+> **Imbalance strategy is dataset-dependent.** Cost-sensitive weighting *dominates*
+> on Sparkov (strong engineered features) but **collapses** on ULB (weak PCA
+> features) — there, aggressive `scale_pos_weight` floods the score head with false
+> positives and a plain model wins. There is no universal imbalance recipe; you
+> validate per-dataset. This is why the project ships an imbalance *study*, not a
+> single assumed fix.
 
 ---
 

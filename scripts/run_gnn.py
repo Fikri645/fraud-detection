@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 import torch  # noqa: E402
 
 from src import config, preprocess, gnn, evaluate  # noqa: E402
@@ -28,12 +29,14 @@ def main():
     X = np.vstack([Xn_tr.values, Xn_te.values]).astype(np.float32)
     y = np.concatenate([df_tr[config.TARGET].values, df_te[config.TARGET].values]).astype(np.float32)
     cards = np.concatenate([df_tr[config.CARD_COL].values, df_te[config.CARD_COL].values])
+    merch_raw = np.concatenate([df_tr[config.MERCHANT_COL].values, df_te[config.MERCHANT_COL].values])
+    merchants = pd.factorize(merch_raw)[0]
     train_mask = np.concatenate([np.ones(len(df_tr), bool), np.zeros(len(df_te), bool)])
 
     print(f"[gnn] building graph: {len(X):,} nodes "
           f"({'GPU' if torch.cuda.is_available() else 'CPU'})")
-    data = gnn.build_graph(X, y, cards, train_mask, k=5)
-    print(f"[gnn] edges: {data.edge_index.shape[1]:,}")
+    data = gnn.build_graph(X, y, cards, train_mask, merchant_ids=merchants, k=5)
+    print(f"[gnn] edges: {data.edge_index.shape[1]:,} (card chain + merchant chain, directed)")
 
     model = gnn.train_gnn(data)
 

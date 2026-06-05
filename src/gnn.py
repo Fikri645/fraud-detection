@@ -31,44 +31,59 @@ from src import config
 
 # ── Graph construction ──────────────────────────────────────────────────────
 
-def build_card_chain_edges(card_ids: np.ndarray, k: int = 5) -> np.ndarray:
+def build_directed_chain_edges(group_ids: np.ndarray, k: int = 5) -> np.ndarray:
     """
-    For data already sorted by (card, time), link each transaction to its
-    previous up-to-k transactions on the same card. Returns edge_index [2, E]
-    (directed past -> present, plus the reverse for message passing).
+    For data already sorted by (group, time), link each transaction to its
+    previous up-to-k transactions in the same group. Returns edge_index [2, E]
+    with edges **strictly directed past -> present**.
+
+    Directed-only is deliberate: GraphSAGE then aggregates a node only from its
+    own past, so even multi-hop receptive fields stay in the past. This removes
+    the temporal leakage a bidirectional graph would introduce (a transaction
+    must never see future transactions of the same card/merchant at score time).
     """
     src, dst = [], []
-    n = len(card_ids)
-    # Find contiguous runs of identical card id (input must be card-grouped)
+    n = len(group_ids)
     start = 0
     for i in range(1, n + 1):
-        if i == n or card_ids[i] != card_ids[start]:
-            # run [start, i)
+        if i == n or group_ids[i] != group_ids[start]:
             for j in range(start, i):
                 lo = max(start, j - k)
                 for p in range(lo, j):
-                    src.append(p); dst.append(j)   # past -> present
+                    src.append(p); dst.append(j)   # past -> present only
             start = i
     if not src:
         return np.zeros((2, 0), dtype=np.int64)
-    e = np.array([src, dst], dtype=np.int64)
-    # add reverse edges for bidirectional message passing
-    e = np.concatenate([e, e[::-1]], axis=1)
-    return e
+    return np.array([src, dst], dtype=np.int64)
+
+
+def _chain_edges_by_group(group_ids: np.ndarray, k: int) -> np.ndarray:
+    """Build directed chain edges for an arbitrary grouping, in original index space."""
+    order = np.argsort(group_ids, kind="stable")   # stable -> preserves time order within group
+    inv = np.empty_like(order); inv[order] = np.arange(len(order))
+    e_sorted = build_directed_chain_edges(group_ids[order], k=k)
+    return inv[e_sorted] if e_sorted.size else e_sorted
 
 
 def build_graph(X: np.ndarray, y: np.ndarray, card_ids: np.ndarray,
-                train_mask: np.ndarray, k: int = 5):
-    """Assemble a PyG Data object. X must be row-aligned with card_ids/y."""
+                train_mask: np.ndarray, merchant_ids: np.ndarray = None,
+                k: int = 5):
+    """
+    Assemble a PyG Data object. X must be row-aligned with card_ids/y.
+
+    Edges (all directed past -> present):
+      - card chain:     each txn -> its previous k txns on the same card
+                        (captures account-takeover bursts)
+      - merchant chain: each txn -> its previous k txns at the same merchant
+                        (captures fraud rings hitting one merchant), if provided
+    """
     from torch_geometric.data import Data
 
-    # Sort everything by card so chain edges are contiguous-run cheap to build
-    order = np.argsort(card_ids, kind="stable")
-    inv = np.empty_like(order); inv[order] = np.arange(len(order))
-
-    edges_sorted = build_card_chain_edges(card_ids[order], k=k)
-    # Map edge endpoints back to original row indices
-    edge_index = inv[edges_sorted] if edges_sorted.size else edges_sorted
+    edge_sets = [_chain_edges_by_group(card_ids, k)]
+    if merchant_ids is not None:
+        edge_sets.append(_chain_edges_by_group(merchant_ids, k))
+    edge_sets = [e for e in edge_sets if e.size]
+    edge_index = np.concatenate(edge_sets, axis=1) if edge_sets else np.zeros((2, 0), np.int64)
 
     data = Data(
         x=torch.tensor(X, dtype=torch.float32),

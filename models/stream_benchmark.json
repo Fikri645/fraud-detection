@@ -1,14 +1,14 @@
 {
   "transactions": 20000,
-  "throughput_per_sec": 131.9,
+  "throughput_per_sec": 117.4,
   "latency_ms": {
-    "p50": 7.11,
-    "p95": 11.21,
-    "p99": 13.02,
-    "max": 32.82
+    "p50": 7.98,
+    "p95": 12.45,
+    "p99": 15.82,
+    "max": 64.82
   },
   "fraud_in_stream": 68,
-  "fraud_caught": 20,
-  "catch_rate": 0.294,
-  "decline_rate": 0.0013
+  "fraud_caught": 58,
+  "catch_rate": 0.853,
+  "decline_rate": 0.01795
 }
